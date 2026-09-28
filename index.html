@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f7f7f3" />
+  <title>Playtime Arcade — Focus, then play</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div>
+          <p class="eyebrow">Brandon's</p>
+          <p class="brand-name">Playtime</p>
+        </div>
+      </div>
+
+      <nav class="side-nav">
+        <button class="nav-item active" data-view="focus" type="button"><span class="nav-icon">◉</span>Focus floor</button>
+        <button class="nav-item" data-view="arcade" type="button"><span class="nav-icon">✦</span>Arcade</button>
+        <button class="nav-item" data-view="prizes" type="button"><span class="nav-icon">▣</span>Prize shelf</button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="streak-card">
+          <div class="mini-flame">✦</div>
+          <div><strong>3 day streak</strong><span>Keep the lights on.</span></div>
+        </div>
+        <button class="help-link" type="button" id="resetDemo">↻ Reset demo</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="mobile-brand"><div class="brand-mark"><span></span><span></span><span></span></div><strong>Playtime</strong></div>
+        <div class="breadcrumb"><span>Today</span><span class="slash">/</span><strong>Focus floor</strong></div>
+        <div class="top-actions">
+          <div class="stat-pill gems"><span class="gem-icon">◆</span><strong id="gemsCount">25</strong><span class="stat-label">gems</span></div>
+          <div class="stat-pill tickets"><span class="ticket-icon">▤</span><strong id="ticketsCount">12</strong><span class="stat-label">tickets</span></div>
+          <button class="avatar" aria-label="Open Brandon's profile" type="button">B</button>
+        </div>
+      </header>
+
+      <section class="page-view active-view" id="focusView" data-page="focus">
+        <div class="page-heading">
+          <div>
+            <p class="kicker"><span class="pulse-dot"></span>Open for business</p>
+            <h1>Make progress.<br /><em>Play a little.</em></h1>
+            <p class="heading-copy">Finish a task, pick a machine, and trade your focus for a little fun.</p>
+          </div>
+          <div class="session-stamp"><span class="stamp-star">✦</span><div><strong id="sessionDate">SAT · SEP 26</strong><span>Focus session 01</span></div></div>
+        </div>
+
+        <div class="focus-layout">
+          <section class="task-panel panel-card">
+            <div class="panel-header">
+              <div><p class="section-label">Your play queue</p><h2>Tasks on deck <span id="taskCount">0 / 0</span></h2></div>
+              <button class="add-task-button" id="openAddTask" type="button"><span>+</span> Add task</button>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+            <div class="task-list" id="taskList" aria-live="polite"></div>
+            <div class="empty-state" id="emptyState" hidden>
+              <div class="empty-icon">✦</div><h3>Build your focus queue</h3><p>Add your own tasks to get started.</p><button class="primary-button add-first-task-button" id="emptyAddTask" type="button">+ Add your tasks</button>
+            </div>
+            <form class="add-task-form" id="addTaskForm" hidden>
+              <label for="taskInput">New task</label>
+              <div class="form-row"><input id="taskInput" type="text" maxlength="80" placeholder="e.g. Reply to the design notes" autocomplete="off" /><button class="primary-button small" type="submit">Add</button><button class="icon-button" id="cancelAddTask" type="button" aria-label="Cancel">×</button></div>
+            </form>
+          </section>
+
+          <aside class="side-column">
+            <section class="now-card panel-card">
+              <div class="now-top"><span class="section-label">Up next</span><span class="live-badge">LIVE</span></div>
+              <div class="next-illustration" aria-hidden="true"><div class="sun-disc"></div><div class="arcade-ghost ghost-one"></div><div class="arcade-ghost ghost-two"></div><div class="spark spark-a">✦</div><div class="spark spark-b">✦</div></div>
+              <div class="next-copy"><h3 id="nextTaskName">Choose a task to begin</h3><p id="nextTaskCopy">Your next round is waiting for you.</p><button class="primary-button full" id="startNextTask" type="button">Start next task <span>→</span></button></div>
+            </section>
+            <section class="break-card panel-card">
+              <div class="break-header"><span class="section-label">Break bank</span><button class="break-time break-trigger" id="breakCount" type="button" disabled>0 min</button></div>
+              <div class="break-progress"><div id="breakProgress"></div></div>
+              <p>Click your break time to rest now.</p>
+            </section>
+          </aside>
+        </div>
+
+        <section class="arcade-teaser">
+          <div class="teaser-copy"><p class="section-label">The reward room</p><h2>Three ways to spend<br /><em>your focus.</em></h2><p>Pick what matches your mood. Every machine pays out.</p><button class="outline-button" data-view="arcade" type="button">Visit the arcade <span>↗</span></button></div>
+          <div class="machine-row mini-machines" aria-label="Arcade game previews">
+            <button class="mini-machine mini-claw" data-game="claw" type="button"><span class="machine-tag">01</span><div class="mini-glass"><div class="mini-claw-arm"></div><div class="mini-capsule one"></div><div class="mini-capsule two"></div><div class="mini-capsule three"></div></div><strong>Lucky claw</strong><small>Grab a surprise</small></button>
+            <button class="mini-machine mini-wheel" data-game="wheel" type="button"><span class="machine-tag">02</span><div class="mini-wheel-disc"><i></i><i></i><i></i><i></i><b>GO</b></div><strong>Spin cycle</strong><small>Let luck decide</small></button>
+            <button class="mini-machine mini-tickets" data-game="tickets" type="button"><span class="machine-tag">03</span><div class="mini-ticket-stack"><span>★</span><span>★</span><span>★</span></div><strong>Ticket drop</strong><small>Stack your wins</small></button>
+          </div>
+        </section>
+      </section>
+
+      <section class="page-view" id="arcadeView" data-page="arcade">
+        <div class="page-heading compact-heading"><div><p class="kicker"><span class="pulse-dot"></span>Reward room</p><h1>Welcome to the<br /><em>arcade.</em></h1><p class="heading-copy">You did the work. Now pick a machine and make it count.</p></div><div class="arcade-sign">TOKENS<br /><strong>READY</strong></div></div>
+        <div class="arcade-stage panel-card"><div class="stage-lights"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="machine-grid"><button class="machine-card claw-card" data-game="claw" type="button"><span class="card-number">01 / 03</span><div class="machine-visual claw-visual"><div class="cabinet-top">LUCKY CLAW</div><div class="cabinet-window"><div class="cabinet-glow"></div><div class="big-claw"><span></span></div><div class="prize-ball ball-pink"></div><div class="prize-ball ball-yellow"></div><div class="prize-ball ball-blue"></div><div class="prize-ball ball-green"></div><div class="machine-stars">✦ &nbsp; ✦</div></div><div class="cabinet-controls"><span></span><i></i><i></i></div></div><div class="machine-info"><h2>Lucky claw</h2><p>Drop in. Grab a surprise.</p><span class="play-link">Play machine <b>→</b></span></div></button><button class="machine-card wheel-card" data-game="wheel" type="button"><span class="card-number">02 / 03</span><div class="machine-visual wheel-visual"><div class="wheel-neon">SPIN CYCLE</div><div class="large-wheel"><span class="wheel-slice s1"></span><span class="wheel-slice s2"></span><span class="wheel-slice s3"></span><span class="wheel-slice s4"></span><span class="wheel-slice s5"></span><span class="wheel-hub">GO</span></div><div class="wheel-pointer"></div><div class="wheel-base"></div></div><div class="machine-info"><h2>Spin cycle</h2><p>Let luck pick your prize.</p><span class="play-link">Play machine <b>→</b></span></div></button><button class="machine-card ticket-card" data-game="tickets" type="button"><span class="card-number">03 / 03</span><div class="machine-visual ticket-visual"><div class="ticket-neon">TICKET DROP</div><div class="ticket-screen"><span id="ticketPreviewOne">25</span><span id="ticketPreviewTwo">10</span><span id="ticketPreviewThree">50</span></div><div class="ticket-slot"></div><div class="ticket-rain">★　★　★</div><div class="ticket-base"></div></div><div class="machine-info"><h2>Ticket drop</h2><p>Make your stack a little taller.</p><span class="play-link">Play machine <b>→</b></span></div></button></div></div>
+      </section>
+
+      <section class="page-view" id="prizesView" data-page="prizes">
+        <div class="page-heading compact-heading"><div><p class="kicker"><span class="pulse-dot"></span>Your stash</p><h1>The prize<br /><em>shelf.</em></h1><p class="heading-copy">A little proof that focus pays off.</p></div><div class="stash-total"><span>Total value</span><strong><b id="stashGems">25</b> gems</strong></div></div>
+        <div class="prize-shelf panel-card"><div class="shelf-top"><div><p class="section-label">Unlocked rewards</p><h2>Keep the good stuff close.</h2></div><div class="shelf-stats"><span><b id="shelfTickets">12</b> tickets</span><span><b id="shelfBreak">0</b> min breaks</span></div></div><div class="prize-grid"><div class="prize-item pink-prize"><div class="prize-art"><span>05</span><small>MIN</small></div><h3>Quick reset</h3><p>5-minute break</p></div><div class="prize-item yellow-prize"><div class="prize-art"><span>25</span><small>GEMS</small></div><h3>Bright idea</h3><p>25 gems</p></div><div class="prize-item blue-prize"><div class="prize-art"><span>25</span><small>TIX</small></div><h3>Ticket stack</h3><p>25 tickets</p></div><div class="prize-item white-prize"><div class="prize-art"><span>+</span><small>YOU</small></div><h3>Next reward</h3><p>Finish a task to unlock</p></div></div></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="task-overlay" id="taskOverlay" hidden>
+    <div class="modal-backdrop" data-close="task"></div>
+    <section class="task-modal modal-card" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
+      <button class="modal-close" data-close="task" type="button" aria-label="Close">×</button>
+      <div class="modal-kicker"><span class="pulse-dot"></span>Focus round <span class="round-number">01</span></div>
+      <div class="focus-orbit"><div class="orbit-dot"></div><div class="orbit-ring"></div><div class="focus-center">FOCUS</div></div>
+      <div class="task-step" id="timerStep">
+        <p class="section-label">Finish this task</p><h2 id="taskModalTitle">Task name</h2><p class="modal-description">Take the next small step. You can do this.</p><div class="timer-row"><span class="timer-label">Open focus time</span><strong id="focusTimer">00:00</strong></div><button class="primary-button done-button" id="doneTask" type="button">Done <span>→</span></button>
+      </div>
+      <div class="task-step" id="confirmStep" hidden>
+        <div class="confirm-mark">?</div><p class="section-label">Quick check</p><h2>Are you really done?</h2><p class="modal-description">Take one last look at your task before you cash in your focus.</p><div class="confirm-actions"><button class="secondary-button" id="notDone" type="button">No, back to timer</button><button class="primary-button" id="confirmDone" type="button">Yes, I’m done <span>✓</span></button></div>
+      </div>
+      <div class="task-step" id="arcadeStep" hidden>
+        <div class="confirm-mark complete-mark">✦</div><p class="section-label">Task complete</p><h2>Nice work.</h2><p class="modal-description">Your reward is ready. Pick a machine and make it count.</p><button class="primary-button done-button" id="toArcade" type="button">To the Arcade👇 <span>→</span></button>
+      </div>
+    </section>
+  </div>
+
+  <div class="reward-overlay" id="rewardOverlay" hidden>
+    <div class="modal-backdrop" data-close="reward"></div>
+    <section class="reward-chooser modal-card" role="dialog" aria-modal="true" aria-labelledby="rewardTitle">
+      <button class="modal-close" data-close="reward" type="button" aria-label="Close">×</button>
+      <div class="modal-kicker"><span class="pulse-dot yellow"></span>Task complete <span class="spark-text">✦</span></div><h2 id="rewardTitle">Nice work.<br /><em>Pick your play.</em></h2><p class="modal-description">Choose one machine to claim your reward.</p>
+      <div class="reward-choice-grid"><button class="reward-choice" data-game="claw" type="button"><span class="choice-icon claw-choice">✦</span><span><strong>Lucky claw</strong><small>Surprise reward</small></span><b>→</b></button><button class="reward-choice" data-game="wheel" type="button"><span class="choice-icon wheel-choice">◉</span><span><strong>Spin cycle</strong><small>Let luck decide</small></span><b>→</b></button><button class="reward-choice" data-game="tickets" type="button"><span class="choice-icon ticket-choice">★</span><span><strong>Ticket drop</strong><small>Stack the wins</small></span><b>→</b></button></div>
+    </section>
+  </div>
+
+  <div class="game-overlay" id="gameOverlay" hidden>
+    <div class="modal-backdrop" data-close="game"></div>
+    <section class="game-modal modal-card" role="dialog" aria-modal="true" aria-labelledby="gameTitle"><button class="modal-close" data-close="game" type="button" aria-label="Close">×</button><div class="modal-kicker"><span class="pulse-dot yellow"></span><span id="gameKicker">Reward machine</span></div><h2 id="gameTitle">Lucky claw</h2><p id="gameSubtitle" class="modal-description">Take a shot at a surprise reward.</p><div id="gameArea"></div><div class="game-result" id="gameResult" hidden><span class="result-spark">✦</span><div><span>You won</span><strong id="resultText">25 gems</strong></div></div><div class="jackpot-celebration" id="jackpotCelebration" hidden aria-live="assertive"><div class="celebration-dark"></div><div class="stage-light light-one"></div><div class="stage-light light-two"></div><div class="stage-light light-three"></div><div class="stage-light light-four"></div><div class="floor-lights"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="confetti-field" id="confettiField"><div class="confetti-burst-layer"></div><div class="confetti-rain-layer rain-back"></div><div class="confetti-rain-layer rain-front"></div></div><div class="jackpot-box"><span class="jackpot-spark">✦</span><strong>YOU’VE HIT<br />THE JACKPOT!!</strong><small>1,000 TICKETS</small></div><div class="jackpot-odds">THIS IS A 1% CHANCE!</div></div><button class="primary-button full" id="gameAction" type="button">Drop the claw <span>↓</span></button><button class="text-button back-tasks" id="backToTasks" type="button">← Back to tasks</button></section>
+  </div>
+
+  <div class="daily-reward-overlay" id="dailyRewardOverlay" hidden>
+    <div class="modal-backdrop" data-close="daily"></div>
+    <section class="daily-reward-modal modal-card" role="dialog" aria-modal="true" aria-labelledby="dailyRewardTitle">
+      <button class="modal-close" data-close="daily" type="button" aria-label="Close">×</button>
+      <div class="daily-reward-icon" aria-hidden="true">✦</div>
+      <p class="kicker daily-reward-kicker"><span class="pulse-dot yellow"></span>Daily reward</p>
+      <h2 id="dailyRewardTitle">Day 1 reward</h2>
+      <p class="modal-description" id="dailyRewardCopy">Come back each day to build your streak.</p>
+      <div class="daily-reward-track" id="dailyRewardTrack" aria-label="Five day reward streak"></div>
+      <button class="primary-button full" id="claimDailyReward" type="button">Claim today’s reward <span>✦</span></button>
+    </section>
+  </div>
+
+  <div class="break-overlay" id="breakOverlay" hidden>
+    <div class="modal-backdrop" data-close="break"></div>
+    <section class="break-modal modal-card" role="dialog" aria-modal="true" aria-labelledby="breakModalTitle">
+      <button class="modal-close" data-close="break" type="button" aria-label="Close">×</button>
+      <div class="break-rest-icon" aria-hidden="true">☼</div>
+      <p class="kicker"><span class="pulse-dot"></span>Break bank</p>
+      <h2 id="breakModalTitle">Rest now.</h2>
+      <p class="modal-description" id="breakModalCopy">You have break time ready. Take it whenever you need it.</p>
+      <div class="rest-timer"><strong id="restTimer">00:00</strong><span>time to recharge</span></div>
+      <button class="primary-button full" id="startBreak" type="button">Start my break <span>☼</span></button>
+      <button class="primary-button full" id="finishBreak" type="button" hidden>Back to the lobby <span>→</span></button>
+      <div class="extra-break-area">
+        <button class="secondary-button full extra-break-trigger" id="extraBreakButton" type="button">Extra break time <span>＋</span></button>
+        <div class="extra-break-options" id="extraBreakOptions" hidden>
+          <p class="extra-break-label">Choose extra time</p>
+          <div class="extra-break-grid">
+            <button class="extra-break-option" data-break-minutes="5" data-break-cost="10" type="button"><strong>+5 min</strong><small>10 tickets + 10 gems</small></button>
+            <button class="extra-break-option" data-break-minutes="10" data-break-cost="20" type="button"><strong>+10 min</strong><small>20 tickets + 20 gems</small></button>
+            <button class="extra-break-option" data-break-minutes="15" data-break-cost="30" type="button"><strong>+15 min</strong><small>30 tickets + 30 gems</small></button>
+            <button class="extra-break-option" data-break-minutes="20" data-break-cost="40" type="button"><strong>+20 min</strong><small>40 tickets + 40 gems</small></button>
+          </div>
+          <p class="break-purchase-message" id="breakPurchaseMessage" aria-live="polite"></p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status"><span>✦</span><span id="toastText">Reward added</span></div>
+  <script src="script.js"></script>
+</body>
+</html>
