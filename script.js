@@ -6,6 +6,23 @@ const REWARDS = {
   tickets: ["25 tickets", "10 tickets", "50 tickets", "15 tickets"]
 };
 
+const WHEEL_SLOTS = [
+       { label: "5 tickets", reward: "5 tickets", x: 19, y: -72 },
+       { label: "10 tickets", reward: "10 tickets", x: 53, y: -53 },
+       { label: "25 tickets", reward: "25 tickets", x: 72, y: -19 },
+       { label: "10,000 tickets", reward: "10000 tickets", jackpot: true, x: 72, y: 19 },
+       { label: "5 gems", reward: "5 gems", x: 53, y: 53 },
+       { label: "5,000 gems", reward: "5000 gems", jackpot: true, x: 19, y: 72 },
+       { label: "10 min break", reward: "10 minute break", x: -19, y: 72 },
+       { label: "Spin again", spinAgain: true, x: -53, y: 53 },
+       { label: "10 gems", reward: "10 gems", x: -72, y: 19 },
+       { label: "50 gems", reward: "50 gems", x: -72, y: -19 },
+       { label: "25 min break", reward: "25 minute break", x: -53, y: -53 },
+       { label: "7 tickets + gems", reward: "7 tickets and 7 gems", x: -19, y: -72 }
+];
+
+const WHEEL_JACKPOT_CHANCE = 0.01;
+
 const TICKET_VALUES = [5, 10, 15, 25, 50];
 const TICKET_JACKPOT_CHANCE = 0.01;
 const TICKET_MAX_CHANCES = 3;
@@ -18,6 +35,7 @@ const DAILY_REWARDS = [
   { day: 4, reward: "100 gems", short: "100 GEM" },
   { day: 5, reward: "500 tickets", short: "500 TIX" }
 ];
+const EXTRA_BREAK_OPTIONS = [5, 10, 15, 20].map((minutes) => ({ minutes, cost: minutes * 2 }));
 
 const state = {
   tasks: structuredClone(DEFAULT_TASKS),
@@ -38,12 +56,14 @@ const state = {
   clawRewardTimer: null,
   ticketJackpot: false,
   ticketSpinCount: 0,
+  wheelRotation: 0,
   jackpotTimer: null,
   rainStartTimer: null,
   rainFrame: null,
   dailyReward: { lastClaimed: "", streak: 0 },
   breakSeconds: 0,
-  breakInterval: null
+  breakInterval: null,
+  wheelRespinTimer: null
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -161,10 +181,8 @@ function openBreakModal() {
   $("#restTimer").textContent = formatBreakTime(state.breaks * 60);
   $("#breakModalCopy").textContent = state.breaks > 0
     ? `You have ${state.breaks} minute${state.breaks === 1 ? "" : "s"} ready. Take it whenever you need it.`
-    : "You do not have break time yet. Buy extra time below when you need it.";
+    : "You have no break time yet. Add extra break time below.";
   $("#startBreak").hidden = false;
-  $("#startBreak").disabled = state.breaks <= 0;
-  $("#startBreak").style.opacity = state.breaks > 0 ? "1" : ".5";
   $("#finishBreak").hidden = true;
   $("#extraBreakOptions").hidden = true;
   $("#breakPurchaseMessage").textContent = "";
@@ -178,23 +196,23 @@ function toggleExtraBreakOptions() {
 }
 
 function buyExtraBreak(minutes, cost) {
-  if (state.tickets < cost || state.gems < cost) {
+  const option = EXTRA_BREAK_OPTIONS.find((item) => item.minutes === minutes && item.cost === cost);
+  if (!option) return;
+  const currency = state.tickets >= option.cost ? "tickets" : state.gems >= option.cost ? "gems" : "none";
+  if (currency === "none") {
     $("#breakPurchaseMessage").textContent = "Not enough tickets and gems.";
-    $("#breakPurchaseMessage").classList.add("error");
-    showToast("Not enough tickets and gems");
+    $("#breakPurchaseMessage").className = "break-purchase-message error";
     return;
   }
-  state.tickets -= cost;
-  state.gems -= cost;
-  state.breaks += minutes;
+  if (currency === "tickets") state.tickets -= option.cost;
+  else state.gems -= option.cost;
+  state.breaks += option.minutes;
   updateStats();
-  $("#breakPurchaseMessage").classList.remove("error");
-  $("#breakPurchaseMessage").textContent = `Added ${minutes} minutes to your break bank.`;
-  $("#breakModalCopy").textContent = `You have ${state.breaks} minutes ready. Take it whenever you need it.`;
   $("#restTimer").textContent = formatBreakTime(state.breaks * 60);
-  $("#startBreak").disabled = false;
-  $("#startBreak").style.opacity = "1";
-  showToast(`${minutes} minute break added`);
+  $("#breakModalCopy").textContent = `You have ${state.breaks} minutes ready. Take it whenever you need it.`;
+  $("#breakPurchaseMessage").className = "break-purchase-message success";
+  $("#breakPurchaseMessage").textContent = `${option.minutes} extra minutes added — paid with ${currency}.`;
+  showToast(`${option.minutes} minute break added`);
 }
 
 function finishBreak() {
@@ -254,12 +272,9 @@ function updateStats() {
   $("#ticketsCount").textContent = state.tickets;
   $("#breakCount").textContent = `${state.breaks} min`;
   $("#breakProgress").style.width = `${Math.min(100, state.breaks * 3.33)}%`;
-  $("#stashGems").textContent = state.gems;
-  $("#shelfTickets").textContent = state.tickets;
-  $("#shelfBreak").textContent = state.breaks;
   const breakButton = $("#breakCount");
   breakButton.disabled = false;
-  breakButton.style.opacity = state.breaks > 0 ? "1" : ".5";
+  breakButton.style.opacity = "1";
   saveProgress();
 }
 
@@ -279,6 +294,7 @@ function openTask(task) {
   state.timer = 0;
   state.clawChanceUsed = false;
   state.ticketSpinCount = 0;
+  state.wheelSpinCount = 0;
   state.gameChanceUsed = { claw: false, wheel: false, tickets: false };
   $("#taskModalTitle").textContent = task.title;
   $("#focusTimer").textContent = "00:00";
@@ -332,6 +348,9 @@ function openGame(game) {
   if (!game) return;
   state.currentGame = game;
   state.gameBusy = false;
+  clearTimeout(state.wheelRespinTimer);
+  state.wheelRespinTimer = null;
+  if (game === "wheel") state.wheelRotation = 0;
   clearTimeout(state.jackpotTimer);
   clearTimeout(state.rainStartTimer);
   cancelAnimationFrame(state.rainFrame);
@@ -359,7 +378,7 @@ function openGame(game) {
 
 function gameMarkup(game) {
   if (game === "claw") return `<div class="game-area claw-game" tabindex="0" role="application" aria-label="Lucky claw. Use left and right arrow keys to move the claw, down to drop, and up to raise it."><div class="claw-instructions"><strong>LUCKY CLAW</strong><span>← → MOVE &nbsp; ↓ DROP &nbsp; ↑ RAISE</span></div><div class="claw-track"><div class="claw-trolley"><div class="claw-cable"></div><div class="claw-grabber"><i></i><i></i></div></div></div><div class="game-glass"><div class="claw-reflection"></div><div class="game-capsule capsule-yellow"></div><div class="game-capsule capsule-blue"></div><div class="game-capsule capsule-mint"></div><div class="game-capsule capsule-lilac"></div><div class="game-stars">✦　✦</div></div><div class="claw-floor"></div></div>`;
-  if (game === "wheel") return `<div class="game-area wheel-game"><div class="game-wheel"><div class="game-wheel-center">GO</div></div><div class="game-wheel-pointer"></div></div>`;
+  if (game === "wheel") return `<div class="game-area wheel-game"><div class="game-wheel">${WHEEL_SLOTS.map((slot, index) => `<span class="wheel-slot-label${slot.jackpot ? " wheel-slot-jackpot" : ""}${slot.spinAgain ? " wheel-slot-repeat" : ""}" style="--slot-x:${slot.x}px;--slot-y:${slot.y}px">${slot.label}</span>`).join("")}<div class="game-wheel-center">GO</div></div><div class="game-wheel-pointer"></div></div>`;
   const ticketSequence = Array.from({ length: 8 }, () => TICKET_VALUES).flat();
   return `<div class="game-area ticket-game"><div class="ticket-game-title">TRY TO GET THE 1% JACKPOT!!!</div><div class="reels">${[0, 1, 2].map(() => `<div class="reel"><div class="reel-strip">${ticketSequence.map((number) => `<span>${number}</span>`).join("")}</div></div>`).join("")}</div><div class="ticket-slot-game"></div><div class="ticket-lever"><span>↓</span></div></div>`;
 }
@@ -518,6 +537,14 @@ function showJackpotCelebration() {
   }, 5200);
 }
 
+function chooseWheelSlot() {
+  const roll = Math.random();
+  if (roll < WHEEL_JACKPOT_CHANCE) return 3;
+  if (roll < WHEEL_JACKPOT_CHANCE * 2) return 5;
+  const regularSlots = WHEEL_SLOTS.map((slot, index) => slot.jackpot ? null : index).filter((index) => index !== null);
+  return regularSlots[Math.floor(((roll - WHEEL_JACKPOT_CHANCE * 2) / (1 - WHEEL_JACKPOT_CHANCE * 2)) * regularSlots.length)];
+}
+
 function playGame() {
   if (state.gameBusy) return;
   const game = state.currentGame;
@@ -528,21 +555,40 @@ function playGame() {
     return;
   }
   state.gameBusy = true;
-  if (game !== "tickets") state.gameChanceUsed[game] = true;
   const action = $("#gameAction");
   action.disabled = true;
   action.style.opacity = ".6";
+  let wheelSlot = null;
   if (game === "wheel") {
     const wheel = $(".game-wheel");
-    wheel.style.transform = `rotate(${1440 + Math.floor(Math.random() * 360)}deg)`;
+    const targetIndex = chooseWheelSlot();
+    wheelSlot = WHEEL_SLOTS[targetIndex];
+    const targetCenter = targetIndex * 30 + 15;
+    const currentAngle = ((state.wheelRotation % 360) + 360) % 360;
+    const alignment = (360 - targetCenter - currentAngle + 360) % 360;
+    state.wheelRotation += 1440 + alignment;
+    wheel.style.transform = `rotate(${state.wheelRotation}deg)`;
   }
   const spinDuration = game === "tickets" ? spinTicketReels() : 2700;
   setTimeout(() => {
     const options = REWARDS[game];
     const jackpot = game === "tickets" && state.ticketJackpot;
-    const reward = jackpot ? "1000 tickets" : options[Math.floor(Math.random() * options.length)];
+    if (game === "wheel" && wheelSlot.spinAgain) {
+      $("#resultText").textContent = "Spin again!";
+      $("#gameResult").hidden = false;
+      action.innerHTML = 'Spinning again <span>↻</span>';
+      action.disabled = true;
+      action.style.opacity = ".6";
+      state.gameBusy = false;
+      state.wheelRespinTimer = setTimeout(() => {
+        if (!$("#gameOverlay").hidden && state.currentGame === "wheel") playGame();
+      }, 850);
+      return;
+    }
+    const reward = game === "wheel" ? wheelSlot.reward : jackpot ? "1000 tickets" : options[Math.floor(Math.random() * options.length)];
+    if (game !== "tickets") state.gameChanceUsed[game] = true;
     applyReward(reward);
-    $("#resultText").textContent = reward;
+    $("#resultText").textContent = game === "wheel" ? wheelSlot.label : reward;
     $("#gameResult").hidden = false;
     const chancesLeft = TICKET_MAX_CHANCES - state.ticketSpinCount;
     action.innerHTML = game === "tickets" && chancesLeft > 0 ? `Spin again <span>↻</span>` : 'Chances used <span>✓</span>';
@@ -576,7 +622,7 @@ function closeModal(type) {
   if (type === "reward") $("#rewardOverlay").hidden = true;
   if (type === "daily") $("#dailyRewardOverlay").hidden = true;
   if (type === "break") { clearInterval(state.breakInterval); state.breakInterval = null; $("#breakOverlay").hidden = true; }
-  if (type === "game") { clearTimeout(state.clawRaiseTimer); clearTimeout(state.clawRewardTimer); clearTimeout(state.jackpotTimer); clearTimeout(state.rainStartTimer); cancelAnimationFrame(state.rainFrame); state.rainFrame = null; $("#jackpotCelebration").hidden = true; $("#gameOverlay").hidden = true; state.gameBusy = false; }
+  if (type === "game") { clearTimeout(state.clawRaiseTimer); clearTimeout(state.clawRewardTimer); clearTimeout(state.jackpotTimer); clearTimeout(state.rainStartTimer); clearTimeout(state.wheelRespinTimer); state.wheelRespinTimer = null; cancelAnimationFrame(state.rainFrame); state.rainFrame = null; $("#jackpotCelebration").hidden = true; $("#gameOverlay").hidden = true; state.gameBusy = false; }
 }
 
 function resetDemo() {
@@ -608,13 +654,14 @@ $("#gameAction").addEventListener("click", playGame);
 $("#backToTasks").addEventListener("click", () => { closeModal("game"); showView("focus"); });
 $("#claimDailyReward").addEventListener("click", claimDailyReward);
 $("#breakCount").addEventListener("click", openBreakModal);
-$("#startBreak").addEventListener("click", startBreak);
-$("#finishBreak").addEventListener("click", finishBreak);
 $("#extraBreakButton").addEventListener("click", toggleExtraBreakOptions);
 $("#extraBreakOptions").addEventListener("click", (event) => {
   const option = event.target.closest("[data-break-minutes]");
-  if (option) buyExtraBreak(Number(option.dataset.breakMinutes), Number(option.dataset.breakCost));
+  if (!option) return;
+  buyExtraBreak(Number(option.dataset.breakMinutes), Number(option.dataset.breakCost));
 });
+$("#startBreak").addEventListener("click", startBreak);
+$("#finishBreak").addEventListener("click", finishBreak);
 $("#resetDemo").addEventListener("click", resetDemo);
 
 document.addEventListener("click", (event) => {
@@ -638,3 +685,7 @@ state.dailyReward = loadDailyReward();
 renderTasks();
 renderDailyReward();
 openDailyReward();
+window.addEventListener("pageshow", () => {
+  state.dailyReward = loadDailyReward();
+  openDailyReward();
+});

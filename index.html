@@ -21,7 +21,6 @@
       <nav class="side-nav">
         <button class="nav-item active" data-view="focus" type="button"><span class="nav-icon">◉</span>Focus floor</button>
         <button class="nav-item" data-view="arcade" type="button"><span class="nav-icon">✦</span>Arcade</button>
-        <button class="nav-item" data-view="prizes" type="button"><span class="nav-icon">▣</span>Prize shelf</button>
       </nav>
 
       <div class="sidebar-bottom">
@@ -100,10 +99,6 @@
         <div class="arcade-stage panel-card"><div class="stage-lights"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div class="machine-grid"><button class="machine-card claw-card" data-game="claw" type="button"><span class="card-number">01 / 03</span><div class="machine-visual claw-visual"><div class="cabinet-top">LUCKY CLAW</div><div class="cabinet-window"><div class="cabinet-glow"></div><div class="big-claw"><span></span></div><div class="prize-ball ball-pink"></div><div class="prize-ball ball-yellow"></div><div class="prize-ball ball-blue"></div><div class="prize-ball ball-green"></div><div class="machine-stars">✦ &nbsp; ✦</div></div><div class="cabinet-controls"><span></span><i></i><i></i></div></div><div class="machine-info"><h2>Lucky claw</h2><p>Drop in. Grab a surprise.</p><span class="play-link">Play machine <b>→</b></span></div></button><button class="machine-card wheel-card" data-game="wheel" type="button"><span class="card-number">02 / 03</span><div class="machine-visual wheel-visual"><div class="wheel-neon">SPIN CYCLE</div><div class="large-wheel"><span class="wheel-slice s1"></span><span class="wheel-slice s2"></span><span class="wheel-slice s3"></span><span class="wheel-slice s4"></span><span class="wheel-slice s5"></span><span class="wheel-hub">GO</span></div><div class="wheel-pointer"></div><div class="wheel-base"></div></div><div class="machine-info"><h2>Spin cycle</h2><p>Let luck pick your prize.</p><span class="play-link">Play machine <b>→</b></span></div></button><button class="machine-card ticket-card" data-game="tickets" type="button"><span class="card-number">03 / 03</span><div class="machine-visual ticket-visual"><div class="ticket-neon">TICKET DROP</div><div class="ticket-screen"><span id="ticketPreviewOne">25</span><span id="ticketPreviewTwo">10</span><span id="ticketPreviewThree">50</span></div><div class="ticket-slot"></div><div class="ticket-rain">★　★　★</div><div class="ticket-base"></div></div><div class="machine-info"><h2>Ticket drop</h2><p>Make your stack a little taller.</p><span class="play-link">Play machine <b>→</b></span></div></button></div></div>
       </section>
 
-      <section class="page-view" id="prizesView" data-page="prizes">
-        <div class="page-heading compact-heading"><div><p class="kicker"><span class="pulse-dot"></span>Your stash</p><h1>The prize<br /><em>shelf.</em></h1><p class="heading-copy">A little proof that focus pays off.</p></div><div class="stash-total"><span>Total value</span><strong><b id="stashGems">25</b> gems</strong></div></div>
-        <div class="prize-shelf panel-card"><div class="shelf-top"><div><p class="section-label">Unlocked rewards</p><h2>Keep the good stuff close.</h2></div><div class="shelf-stats"><span><b id="shelfTickets">12</b> tickets</span><span><b id="shelfBreak">0</b> min breaks</span></div></div><div class="prize-grid"><div class="prize-item pink-prize"><div class="prize-art"><span>05</span><small>MIN</small></div><h3>Quick reset</h3><p>5-minute break</p></div><div class="prize-item yellow-prize"><div class="prize-art"><span>25</span><small>GEMS</small></div><h3>Bright idea</h3><p>25 gems</p></div><div class="prize-item blue-prize"><div class="prize-art"><span>25</span><small>TIX</small></div><h3>Ticket stack</h3><p>25 tickets</p></div><div class="prize-item white-prize"><div class="prize-art"><span>+</span><small>YOU</small></div><h3>Next reward</h3><p>Finish a task to unlock</p></div></div></div>
-      </section>
     </main>
   </div>
 
@@ -164,17 +159,14 @@
       <button class="primary-button full" id="startBreak" type="button">Start my break <span>☼</span></button>
       <button class="primary-button full" id="finishBreak" type="button" hidden>Back to the lobby <span>→</span></button>
       <div class="extra-break-area">
-        <button class="secondary-button full extra-break-trigger" id="extraBreakButton" type="button">Extra break time <span>＋</span></button>
+        <button class="text-button extra-break-toggle" id="extraBreakButton" type="button">Extra break time <span>+</span></button>
         <div class="extra-break-options" id="extraBreakOptions" hidden>
-          <p class="extra-break-label">Choose extra time</p>
-          <div class="extra-break-grid">
-            <button class="extra-break-option" data-break-minutes="5" data-break-cost="10" type="button"><strong>+5 min</strong><small>10 tickets + 10 gems</small></button>
-            <button class="extra-break-option" data-break-minutes="10" data-break-cost="20" type="button"><strong>+10 min</strong><small>20 tickets + 20 gems</small></button>
-            <button class="extra-break-option" data-break-minutes="15" data-break-cost="30" type="button"><strong>+15 min</strong><small>30 tickets + 30 gems</small></button>
-            <button class="extra-break-option" data-break-minutes="20" data-break-cost="40" type="button"><strong>+20 min</strong><small>40 tickets + 40 gems</small></button>
-          </div>
-          <p class="break-purchase-message" id="breakPurchaseMessage" aria-live="polite"></p>
+          <button type="button" data-break-minutes="5" data-break-cost="10"><strong>5 min</strong><small>10 tickets or gems</small></button>
+          <button type="button" data-break-minutes="10" data-break-cost="20"><strong>10 min</strong><small>20 tickets or gems</small></button>
+          <button type="button" data-break-minutes="15" data-break-cost="30"><strong>15 min</strong><small>30 tickets or gems</small></button>
+          <button type="button" data-break-minutes="20" data-break-cost="40"><strong>20 min</strong><small>40 tickets or gems</small></button>
         </div>
+        <p class="break-purchase-message" id="breakPurchaseMessage" role="status"></p>
       </div>
     </section>
   </div>
